@@ -1,0 +1,71 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Mutation {
+  createUserTable(id: String, text: String): AWSJSON @aws_api_key
+  createUserAccount(userInput: CreateUserInput!): User! @aws_api_key
+  updateUserAccount(userInput: UpdateUserInput!): User! @aws_api_key
+}
+
+type Query {
+  getUserAccount(id: String!): User! @aws_api_key
+}
+
+type User @aws_api_key {
+  id: String!
+  first_name: String!
+  is_admin: Boolean!
+  last_name: String!
+  user_type: USERTYPE!
+  address: Address!
+  email: AWSEmail!
+  profile_pic_url: String!
+  created_at: AWSTimestamp
+  updated_at: AWSTimestamp
+}
+
+input CreateUserInput @aws_api_key {
+  first_name: String!
+  last_name: String!
+  email: AWSEmail!
+  is_admin: Boolean!
+  address: AddressInput!
+  phone_number: AWSPhone!
+  user_type: USERTYPE!
+  profile_pic_url: String
+}
+
+input UpdateUserInput @aws_api_key {
+  id: ID!
+  firstName: String
+  lastName: String
+  is_admin: Boolean!
+  address: AddressInput
+  location: GeolocationInput
+  phoneNumber: AWSPhone
+  profilePicUrl: String
+}
+type Address @aws_api_key {
+  street: String!
+  city: String!
+  zip: Int!
+  country: String!
+  longitude: Float!
+  latitude: Float!
+}
+input AddressInput @aws_api_key {
+  street: String!
+  city: String!
+  zip: Int!
+  country: String!
+  longitude: Float!
+  latitude: Float!
+}
+
+enum USERTYPE {
+  ADMIN
+  CUSTOMER
+  COURIER
+}
