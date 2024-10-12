@@ -3,7 +3,6 @@ import { Construct } from "constructs";
 import * as appsync from "aws-cdk-lib/aws-appsync";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import * as events from "aws-cdk-lib/aws-events";
 export class UserServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -44,7 +43,8 @@ export class UserServiceStack extends cdk.Stack {
       vpc: vpc,
       enableDataApi: true, //for serverless capabilities
       credentials: rds.Credentials.fromSecret(secret),
-      serverlessV2MaxCapacity: 32,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      serverlessV2MaxCapacity: 4,
       serverlessV2MinCapacity: 0.5,
       defaultDatabaseName: "user_service_db",
       readers: [
@@ -54,13 +54,13 @@ export class UserServiceStack extends cdk.Stack {
       ],
       writer: rds.ClusterInstance.provisioned("writer", {
         instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.R6G,
-          ec2.InstanceSize.XLARGE4
+          ec2.InstanceClass.BURSTABLE3,
+          ec2.InstanceSize.MEDIUM
         ),
       }),
     });
 
-    // Create our 2 datasources
+    // Create 2 datasources
 
     const rdsDatasource = api.addRdsDataSourceV2(
       "AuroraDatasource",
@@ -144,9 +144,7 @@ export class UserServiceStack extends cdk.Stack {
       fieldName: "createUserTable",
       dataSource: rdsDatasource,
       runtime: appsync.FunctionRuntime.JS_1_0_0,
-      code: appsync.Code.fromAsset(
-        "./resolvers/create_rds_table/createRdsTable.js"
-      ),
+      code: appsync.Code.fromAsset("./resolvers/rds_table/createRdsTable.js"),
     });
 
     new appsync.Resolver(this, "createUserAccountPipelineResolver", {

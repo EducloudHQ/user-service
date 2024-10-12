@@ -4,7 +4,7 @@ export function request(ctx) {
   const timestamp = util.time.nowEpochSeconds();
 
   console.log(`timestamp ${timestamp}`);
-  //Id format is
+
   const id = util.autoUlid();
   const { ...values } = ctx.args;
   values.userInput.id = id;

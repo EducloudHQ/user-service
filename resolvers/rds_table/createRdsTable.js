@@ -1,4 +1,4 @@
-import { sql, createPgStatement, toJsonObject } from "@aws-appsync/utils/rds";
+import { sql, createPgStatement } from "@aws-appsync/utils/rds";
 export function request(ctx) {
   const s1 = sql`CREATE TABLE addresses (
     id VARCHAR(36) PRIMARY KEY,

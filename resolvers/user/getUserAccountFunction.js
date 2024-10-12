@@ -1,9 +1,4 @@
-import {
-  sql,
-  createPgStatement,
-  select,
-  toJsonObject,
-} from "@aws-appsync/utils/rds";
+import { sql, createPgStatement, toJsonObject } from "@aws-appsync/utils/rds";
 import { util } from "@aws-appsync/utils";
 export function request(ctx) {
   const { user_info } = ctx.prev.result;
