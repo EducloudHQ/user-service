@@ -3,9 +3,23 @@ import { Construct } from "constructs";
 import * as appsync from "aws-cdk-lib/aws-appsync";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as iam from "aws-cdk-lib/aws-iam";
+import { MergeType, SourceApiAssociation } from "aws-cdk-lib/aws-appsync";
+import { SourceApiAssociationMergeOperation } from "awscdk-appsync-utils/lib/source-api-association-merge";
 export class UserServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    //Get Merge API role ARN
+    const roleArn = this.node.tryGetContext("roleArn");
+    const mergedApiExecutionRole = iam.Role.fromRoleArn(
+      this,
+      "MergedApiExecutionRole",
+      roleArn
+    );
+
+    const mergedApiArn = this.node.tryGetContext("mergedApiArn");
+    const mergedApiId = this.node.tryGetContext("mergedApiId");
 
     //create our API
     const api = new appsync.GraphqlApi(this, "user-service-api", {
@@ -20,6 +34,31 @@ export class UserServiceStack extends cdk.Stack {
         fieldLogLevel: appsync.FieldLogLevel.ALL,
       },
       xrayEnabled: true,
+    });
+
+    const mergedApi = appsync.GraphqlApi.fromGraphqlApiAttributes(
+      this,
+      "MergedApi",
+      {
+        graphqlApiArn: mergedApiArn,
+        graphqlApiId: mergedApiId,
+      }
+    );
+
+    const sourceApiAssociation = new SourceApiAssociation(
+      this,
+      "DeliverySourceApiAssociation",
+      {
+        sourceApi: api,
+        mergedApi: mergedApi,
+        mergedApiExecutionRole: mergedApiExecutionRole,
+        mergeType: MergeType.MANUAL_MERGE,
+      }
+    );
+
+    new SourceApiAssociationMergeOperation(this, "SourceApiMergeOperation", {
+      sourceApiAssociation: sourceApiAssociation,
+      alwaysMergeOnStackUpdate: true,
     });
 
     // Create username and password secret for DB Cluster
