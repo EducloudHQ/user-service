@@ -83,20 +83,22 @@ export class UserServiceStack extends cdk.Stack {
       enableDataApi: true, //for serverless capabilities
       credentials: rds.Credentials.fromSecret(secret),
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      serverlessV2MaxCapacity: 4,
+      serverlessV2MaxCapacity: 12,
       serverlessV2MinCapacity: 0.5,
       defaultDatabaseName: "user_service_db",
+
+      writer: rds.ClusterInstance.provisioned("writer", {
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.R6GD,
+          ec2.InstanceSize.XLARGE
+        ),
+      }),
+
       readers: [
-        rds.ClusterInstance.serverlessV2("reader1", {
+        rds.ClusterInstance.serverlessV2("reader", {
           scaleWithWriter: true,
         }),
       ],
-      writer: rds.ClusterInstance.provisioned("writer", {
-        instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.BURSTABLE3,
-          ec2.InstanceSize.MEDIUM
-        ),
-      }),
     });
 
     // Create 2 datasources
